@@ -1,0 +1,90 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Fun with enums and C#",
+        "version": "1.0",
+        "title": "excessive enum example"
+    },
+    "host": "localhost",
+    "basePath": "/",
+    "paths": {
+        "/excess": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "excessRequest",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ExcessRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Alrighty then!"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ExcessRequest": {
+            "type": "object",
+            "properties": {
+                "xy": {
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "xyToo": {
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "xyThree": {
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "ab": {
+                    "type": "string",
+                    "enum": [
+                        "a",
+                        "b"
+                    ]
+                },
+                "abTwo": {
+                    "type": "string",
+                    "enum": [
+                        "a",
+                        "b"
+                    ]
+                },
+                "abThree": {
+                    "type": "string",
+                    "enum": [
+                        "a",
+                        "b"
+                    ]
+                },
+                "abFour": {
+                    "type": "string",
+                    "enum": [
+                        "a",
+                        "b"
+                    ]
+                }
+            }
+        }
+    }
+}

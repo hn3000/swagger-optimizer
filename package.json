@@ -1,0 +1,14 @@
+{
+  "name": "uniq-enums",
+  "version": "1.0.0",
+  "description": "",
+  "main": "find-enums.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Harald Niesche",
+  "license": "MIT",
+  "devDependencies": {
+    "minimist": "^1.2.0"
+  }
+}
