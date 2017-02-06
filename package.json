@@ -1,5 +1,5 @@
 {
-  "name": "uniq-enums",
+  "name": "swagger-optimizer",
   "version": "1.0.0",
   "description": "",
   "main": "find-enums.js",
@@ -8,6 +8,9 @@
   },
   "author": "Harald Niesche",
   "license": "MIT",
+  "dependencies": {
+    "@hn3000/json-ref": "hn3000/json-ref"
+  },
   "devDependencies": {
     "minimist": "^1.2.0"
   }
