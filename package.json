@@ -10,9 +10,7 @@
   "author": "Harald Niesche",
   "license": "MIT",
   "dependencies": {
-    "@hn3000/json-ref": "hn3000/json-ref"
-  },
-  "devDependencies": {
+    "@hn3000/json-ref": "hn3000/json-ref",
     "minimist": "^1.2.0"
   }
 }
