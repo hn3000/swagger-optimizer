@@ -1,0 +1,77 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Example use of allOf (with some use of $ref, to make it shorter)",
+        "version": "1.0",
+        "title": "allOf problem, repro"
+    },
+    "host": "localhost",
+    "basePath": "/",
+    "paths": {
+        "/demo": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "demoRequest",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/DemoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "hunky dory"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "DemoRequest": {
+            "type": "object",
+            "properties": {
+                "something": {
+                    "type": "string"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/definitions/BaseProperties"
+                },
+                {
+                    "$ref": "#/definitions/BaseRequires"
+                }
+            ]
+        },
+        "BaseProperties": {
+            "properties": {
+                "something": {
+                    "enum": [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                },
+                "somethingElse": {
+                    "type": "string",
+                    "enum": [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                }
+            }
+        },
+        "BaseRequires": {
+            "require": [
+                "something",
+                "somethingElse"
+            ]
+        }
+    }
+}

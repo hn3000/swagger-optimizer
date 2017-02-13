@@ -1,56 +1,8 @@
-#! /usr/bin/env node
 
-//console.log(process.argv);
-var fs = require('fs');
-var mm = require('minimist');
 var jsonref = require('@hn3000/json-ref');
-var proc = new jsonref.JsonReferenceProcessor(fetchFile);
 var jp = jsonref.JsonPointer;
 
-var argv = mm(process.argv.slice(2));
-
-for (var i = 0, n = argv._.length; i < n; ++i) {
-  var fn = argv._[i];
-  var sp = fetchFile(fn).then(x => JSON.parse(x)); // proc.expandRef(fn);
-
-  sp.then(schema => {
-
-    console.log(`hunting for enums in ${fn}`);
-    let enums = findEnums(schema, fn);
-    let redundantEnums = enums.filter(e => e.props.length > 1);
-
-    if (null != argv['rename']) {
-      let nameMap = JSON.parse(argv['rename']);
-      for (let e of redundantEnums) {
-        if (null != nameMap[e.name]) {
-          let newName = nameMap[e.name];
-          e.name = newName;
-        }
-      }
-    }
-
-    if ("true" === argv["debug"]) {
-      console.log(fn, redundantEnums);
-    }
-
-    if ("false" !== argv["optimize"]) {
-      let optimized = optimizeEnums(schema, redundantEnums);
-      let optfn = fn.replace(/\.json/, '.opt.json');
-      fs.writeFileSync(optfn, JSON.stringify(optimized,null,2), { encoding: 'utf-8'});
-      console.log(`wrote ${optfn}.`);
-    }
-  });
-
-}
-
-function fetchFile(x) {
-  return Promise.resolve(x).then(x => {
-    console.log("reading ", x, process.cwd(), fs.existsSync(x));
-    return fs.readFileSync(x, 'utf-8');
-  });
-}
-
-function findEnums(schema, fn) {
+export function findEnums(schema, fn) {
   var defs = schema.definitions;
   var queue = [schema];
   var paths = [new jp("")];
@@ -95,6 +47,7 @@ function findEnums(schema, fn) {
             enums.push({
               values: values,
               props: [p],
+              name: name,
               names: [name],
               where: [ thisPath.toString() ],
               paths: [ thisPath ]
@@ -115,7 +68,7 @@ function findEnums(schema, fn) {
   return enums;
 }
 
-function optimizeEnums(schema, enums) {
+export function optimizeEnums(schema, enums) {
   let result = JSON.parse(JSON.stringify(schema));
   let defs = result.definitions;
 
@@ -141,4 +94,17 @@ function sameValuesAllowed(a, b) {
     && a.every(xa => b.some(xb => xb === xa))
     && b.every(xb => a.some(xa => xb === xa))
   );
+}
+
+export function filterEnums(enums, argv:any) {
+  let redundantEnums = enums.filter(e => (e.props.length > 1 && e.values.length > 1));
+
+  if (argv['optimizeNumericEnums']) {
+    redundantEnums = redundantEnums.filter(e => (e.values.every(x => (typeof x === 'number'))));
+  }
+  if (argv['optimizeSimpleEnums']) {
+    redundantEnums = redundantEnums.filter(e => (e.values.every(x => (typeof x === 'number'))));
+  }
+
+  return redundantEnums;
 }

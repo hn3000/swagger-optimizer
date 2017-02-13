@@ -1,0 +1,58 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Fun with enums and C#",
+        "version": "1.0",
+        "title": "enum problems, minimal repro"
+    },
+    "host": "localhost",
+    "basePath": "/",
+    "paths": {
+        "/demo": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "demoRequest",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/DemoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "hunky dory"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "DemoRequest": {
+            "type": "object",
+            "properties": {
+                "inlineEnum": {
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "reffedEnum": {
+                    "$ref": "#/definitions/DemoEnum"
+                }
+            }
+        },
+        "DemoEnum": {
+            "type": "string",
+            "enum": [
+                "a",
+                "b"
+            ]
+        }
+    }
+}

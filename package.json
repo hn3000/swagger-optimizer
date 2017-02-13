@@ -2,15 +2,22 @@
   "name": "swagger-optimizer",
   "version": "1.0.0",
   "description": "",
-  "main": "find-enums.js",
+  "main": "out/optimizer.js",
   "bin": "bin/swagger-optimizer",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "tsc",
+    "test": "node "
   },
   "author": "Harald Niesche",
   "license": "MIT",
   "dependencies": {
     "@hn3000/json-ref": "hn3000/json-ref",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/es6-promise": "0.0.32",
+    "@types/node": "^7.0.5",
+    "tsc": "^1.20150623.0",
+    "typescript": "^2.1.6"
   }
 }
