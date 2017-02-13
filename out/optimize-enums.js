@@ -77,8 +77,8 @@ function optimizeEnums(schema, enums) {
         var nname = "" + e.name.substring(0, 1).toUpperCase() + e.name.substring(1);
         defs[nname] = t;
         var ref = { "$ref": "#/definitions/" + nname };
-        for (var i = 0, n = e.paths.length; i < n; ++i) {
-            p = e.paths[i].add(e.props[i]);
+        for (var i_1 = 0, n_1 = e.paths.length; i_1 < n_1; ++i_1) {
+            p = e.paths[i_1].add(e.props[i_1]);
             p.setValue(result, ref);
         }
     }

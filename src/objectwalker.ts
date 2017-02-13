@@ -19,7 +19,7 @@ export function walkObject<R>(object:any, walker: IWalker<R>, acc: R): R {
     paths.splice(0, 1);
 
     if (count % 100 == 99) {
-      console.log(`examining ${thisPath}`);
+      //console.log(`examining ${thisPath}`);
     }
     ++count;
 
