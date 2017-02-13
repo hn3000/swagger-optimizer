@@ -13,7 +13,6 @@ function findEnums(schema, fn) {
         queue.splice(0, 1);
         paths.splice(0, 1);
         if (count % 100 == 99) {
-            console.log("examining " + thisPath);
         }
         ++count;
         var props = Object.keys(thisOne);

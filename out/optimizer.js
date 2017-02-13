@@ -7,7 +7,15 @@ var jp = jsonref.JsonPointer;
 var _a = require('./optimize-enums'), findEnums = _a.findEnums, optimizeEnums = _a.optimizeEnums, filterEnums = _a.filterEnums;
 var _b = require('./remove-allofs'), findAllOfs = _b.findAllOfs, removeAllOfs = _b.removeAllOfs;
 var argv = mm(process.argv.slice(2));
-console.log(argv);
+var useLogging = !argv.printOutput;
+function consoleLog(msg) {
+    var args = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        args[_i - 1] = arguments[_i];
+    }
+    useLogging && console.log.apply(console, [msg].concat(args));
+}
+consoleLog(argv);
 for (var i = 0, n = argv._.length; i < n; ++i) {
     var fn = argv._[i];
     var sp;
@@ -18,7 +26,7 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
         sp = fetchFile(fn).then(function (x) { return JSON.parse(x); });
     }
     sp.then(function (schema) {
-        console.log("hunting for instances of enum and allOf in " + fn, Object.keys(schema));
+        consoleLog("hunting for instances of enum and allOf in " + fn, Object.keys(schema));
         var enums = findEnums(schema, fn);
         var redundantEnums = filterEnums(enums, argv);
         var allOfs = findAllOfs(schema);
@@ -32,27 +40,34 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
                 }
             }
         }
-        if (argv["debug"]) {
-            console.log(fn, 'enums:', redundantEnums);
-            console.log(fn, 'allOfs:', allOfs);
+        if (argv["debug"] && useLogging) {
+            consoleLog(fn, 'enums:', redundantEnums);
+            consoleLog(fn, 'allOfs:', allOfs);
         }
         var optimized = null;
         if (argv["optimizeEnums"]) {
+            consoleLog('optimize enums ...');
             optimized = optimizeEnums(schema, redundantEnums);
         }
         if (argv["removeAllOfs"]) {
+            consoleLog('remove allOf ...');
             optimized = removeAllOfs(optimized || schema, allOfs);
         }
         if (null != optimized) {
-            var optfn = fn.replace(/\.json/, '.opt.json');
-            fs.writeFileSync(optfn, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
-            console.log("wrote " + optfn + ".");
+            if (argv['writeOutput']) {
+                var optfn = fn.replace(/\.json/, '.opt.json');
+                fs.writeFileSync(optfn, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
+                consoleLog("wrote " + optfn + ".");
+            }
+            if (argv['printOutput']) {
+                console.log(JSON.stringify(optimized, null, 2));
+            }
         }
     });
 }
 function fetchFile(x) {
     return Promise.resolve(x).then(function (x) {
-        console.log("reading ", x, process.cwd(), fs.existsSync(x));
+        consoleLog("reading ", x, process.cwd(), fs.existsSync(x));
         return fs.readFileSync(x, 'utf-8');
     });
 }

@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Example use of allOf (with some use of $ref, to make it shorter)",
+        "description": "Example use of allOf (with some use of $ref, to make it more comprehensive)",
         "version": "1.0",
         "title": "allOf problem, repro"
     },

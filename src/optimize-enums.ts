@@ -17,7 +17,7 @@ export function findEnums(schema, fn) {
     paths.splice(0, 1);
 
     if (count % 100 == 99) {
-      console.log(`examining ${thisPath}`);
+      //console.log(`examining ${thisPath}`);
     }
     ++count;
 

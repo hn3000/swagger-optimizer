@@ -33,16 +33,16 @@ function mergeSchemas(target, sources, path) {
     return target;
 }
 function mergeIntoSchema(target, source, path) {
-    console.log("merging", source, "into", target);
+    //console.log("merging", source, "into", target);
     if (null != target.type && null != source.type && target.type !== source.type) {
-        console.log("different types for " + path.toString() + ": " + target.type + " !== " + source.type);
+        console.warn("different types for " + path.toString() + ": " + target.type + " !== " + source.type);
     }
     else if (null == target.type) {
         target.type = source.type;
     }
     var targetEnum = mergeEnumValues(target["enum"], source["enum"]);
     if (null != target["enum"] && target["enum"].length != 0 && targetEnum.length == 0 && null != source["enum"]) {
-        console.log("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source["enum"].join(',') + "]");
+        console.warn("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source["enum"].join(',') + "]");
     }
     target["enum"] = targetEnum;
     if (target.require && source.require) {

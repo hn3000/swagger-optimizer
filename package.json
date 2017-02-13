@@ -1,5 +1,5 @@
 {
-  "name": "swagger-optimizer",
+  "name": "@hn3000/swagger-optimizer",
   "version": "1.0.0",
   "description": "",
   "main": "out/optimizer.js",

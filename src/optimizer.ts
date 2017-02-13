@@ -12,7 +12,13 @@ var { findAllOfs, removeAllOfs } = require('./remove-allofs');
 
 var argv = mm(process.argv.slice(2));
 
-console.log(argv);
+var useLogging = !argv.printOutput;
+
+function consoleLog(msg, ...args) {
+  useLogging && console.log(msg, ...args);
+}
+
+consoleLog(argv);
 
 for (var i = 0, n = argv._.length; i < n; ++i) {
   var fn = argv._[i];
@@ -25,7 +31,7 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
 
   sp.then(schema => {
 
-    console.log(`hunting for instances of enum and allOf in ${fn}`, Object.keys(schema));
+    consoleLog(`hunting for instances of enum and allOf in ${fn}`, Object.keys(schema));
     
     let enums = findEnums(schema, fn);
     let redundantEnums = filterEnums(enums, argv);
@@ -41,34 +47,40 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
       }
     }
 
-    if (argv["debug"]) {
-      console.log(fn, 'enums:', redundantEnums);
-      console.log(fn, 'allOfs:', allOfs);
+    if (argv["debug"] && useLogging) {
+      consoleLog(fn, 'enums:', redundantEnums);
+      consoleLog(fn, 'allOfs:', allOfs);
     }
 
     let optimized = null;
 
     if (argv["optimizeEnums"]) {
+      consoleLog('optimize enums ...');
       optimized = optimizeEnums(schema, redundantEnums);
     }
 
     if (argv["removeAllOfs"]) {
+      consoleLog('remove allOf ...');
       optimized = removeAllOfs(optimized || schema, allOfs);
     }
 
     if (null != optimized) {
-      let optfn = fn.replace(/\.json/, '.opt.json');
-      fs.writeFileSync(optfn, JSON.stringify(optimized,null,2), { encoding: 'utf-8'});
-      console.log(`wrote ${optfn}.`);
+      if (argv['writeOutput']) {
+        let optfn = fn.replace(/\.json/, '.opt.json');
+        fs.writeFileSync(optfn, JSON.stringify(optimized,null,2), { encoding: 'utf-8'});
+        consoleLog(`wrote ${optfn}.`);
+      }
+      if (argv['printOutput']) {
+        console.log(JSON.stringify(optimized,null,2));
+      }
     }
 
   });
-
 }
 
 function fetchFile(x) {
   return Promise.resolve(x).then(x => {
-    console.log("reading ", x, process.cwd(), fs.existsSync(x));
+    consoleLog("reading ", x, process.cwd(), fs.existsSync(x));
     return fs.readFileSync(x, 'utf-8');
   });
 }
