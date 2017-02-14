@@ -45,11 +45,11 @@ function mergeIntoSchema(target, source, path) {
         console.warn("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source["enum"].join(',') + "]");
     }
     target["enum"] = targetEnum;
-    if (target.require && source.require) {
-        target.require = arrayUnion(source.require, target.require);
+    if (target.required && source.required) {
+        target.required = arrayUnion(source.required, target.required);
     }
-    else if (null == target.require) {
-        target.require = source.require;
+    else if (null == target.required) {
+        target.required = source.required;
     }
     if (target.properties && source.properties) {
         target.properties = mergeProperties(source.properties, target.properties, path);

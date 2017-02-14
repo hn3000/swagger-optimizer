@@ -34,6 +34,9 @@
     "definitions": {
         "DemoRequest": {
             "type": "object",
+            "required": [
+                "something"
+            ],
             "properties": {
                 "something": {
                     "type": "string"
@@ -68,8 +71,7 @@
             }
         },
         "BaseRequires": {
-            "require": [
-                "something",
+            "required": [
                 "somethingElse"
             ]
         }
