@@ -1,11 +1,12 @@
 #! /usr/bin/env node
+"use strict";
 var fs = require('fs');
 var mm = require('minimist');
 var jsonref = require('@hn3000/json-ref');
 var proc = new jsonref.JsonReferenceProcessor(fetchFile);
 var jp = jsonref.JsonPointer;
-var _a = require('./optimize-enums'), findEnums = _a.findEnums, optimizeEnums = _a.optimizeEnums, filterEnums = _a.filterEnums;
-var _b = require('./remove-allofs'), findAllOfs = _b.findAllOfs, removeAllOfs = _b.removeAllOfs;
+var optimize_enums_1 = require("./optimize-enums");
+var remove_allofs_1 = require("./remove-allofs");
 var argv = mm(process.argv.slice(2));
 var useLogging = !argv.printOutput;
 function consoleLog(msg) {
@@ -27,9 +28,9 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
     }
     sp.then(function (schema) {
         consoleLog("hunting for instances of enum and allOf in " + fn, Object.keys(schema));
-        var enums = findEnums(schema, fn);
-        var redundantEnums = filterEnums(enums, argv);
-        var allOfs = findAllOfs(schema);
+        var enums = optimize_enums_1.findEnums(schema, fn);
+        var redundantEnums = optimize_enums_1.filterEnums(enums, argv);
+        var allOfs = remove_allofs_1.findAllOfs(schema);
         if (null != argv['rename']) {
             var nameMap = JSON.parse(argv['rename']);
             for (var _i = 0, redundantEnums_1 = redundantEnums; _i < redundantEnums_1.length; _i++) {
@@ -47,11 +48,11 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
         var optimized = null;
         if (argv["optimizeEnums"]) {
             consoleLog('optimize enums ...');
-            optimized = optimizeEnums(schema, redundantEnums);
+            optimized = optimize_enums_1.optimizeEnums(schema, redundantEnums);
         }
         if (argv["removeAllOfs"]) {
             consoleLog('remove allOf ...');
-            optimized = removeAllOfs(optimized || schema, allOfs);
+            optimized = remove_allofs_1.removeAllOfs(optimized || schema, allOfs, argv);
         }
         if (null != optimized) {
             if (argv['writeOutput']) {

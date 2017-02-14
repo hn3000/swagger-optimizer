@@ -15,8 +15,12 @@ function collectAllOf(hereVal: any, herePath: JsonPointer, acc: JsonPointer[]) {
   return false;
 }
 
+export interface IRemoveAllOfOptions {
+  sortedObjects?: any;
+  [o:string]:any;
+}
 
-export function removeAllOfs(schema, allOfs: JsonPointer[]) {
+export function removeAllOfs(schema, allOfs: JsonPointer[], options: IRemoveAllOfOptions) {
   let result = JSON.parse(JSON.stringify(schema));
   let defs = result.definitions;
 
@@ -26,20 +30,20 @@ export function removeAllOfs(schema, allOfs: JsonPointer[]) {
 
     let allOf = a.getValue(result);
     a.deleteValue(result);
-    mergeSchemas(target, allOf, p);
+    mergeSchemas(target, allOf, p, options);
   }
 
   return result;
 }
 
-function mergeSchemas(target: any, sources: any[], path: JsonPointer) {
+function mergeSchemas(target: any, sources: any[], path: JsonPointer, options:IRemoveAllOfOptions) {
   for (let s of sources) {
-    mergeIntoSchema(target, s, path);
+    mergeIntoSchema(target, s, path, options);
   }
   return target;
 }
 
-function mergeIntoSchema(target: any, source: any, path: JsonPointer) {
+function mergeIntoSchema(target: any, source: any, path: JsonPointer, options:IRemoveAllOfOptions) {
 
 //console.log("merging", source, "into", target);
 
@@ -48,57 +52,69 @@ function mergeIntoSchema(target: any, source: any, path: JsonPointer) {
   } else if (null == target.type) {
     target.type = source.type;
   }
-  let targetEnum = mergeEnumValues(target.enum, source.enum);
+
+  let targetEnum = mergeEnumValues(target.enum, source.enum, options.sortedObjects);
   if (null != target.enum && target.enum.length != 0 && targetEnum.length == 0 && null != source.enum) {
     console.warn(`intersection of enums is empty @${path.toString()}: [${targetEnum.join(',')}] / [${source.enum.join(',')}]`);
   }
-  target.enum = targetEnum;
+  if (null != targetEnum) {
+    target.enum = targetEnum;
+  } else {
+    delete target.enum;
+  }
   if (target.required && source.required) {
-    target.required = arrayUnion(source.required, target.required);
+    target.required = arrayUnion(source.required, target.required, options.sortedObjects);
   } else if (null == target.required) {
     target.required = source.required;
   }
   if (target.properties && source.properties) {
-    target.properties = mergeProperties(source.properties, target.properties, path);
+    target.properties = mergeProperties(source.properties, target.properties, path, options);
   } else if (null == target.properties) {
     target.properties = source.properties;
   }
 }
 
-function mergeProperties(propsA: any, propsB: any, path: JsonPointer) {
+function mergeProperties(propsA: any, propsB: any, path: JsonPointer, options: IRemoveAllOfOptions) {
   let result = { };
   for (let k of Object.keys(propsA)) {
     result[k] = propsA[k];
   }
   for (let k of Object.keys(propsB)) {
     if (null != propsA[k] && null != propsB[k]) {
-      result[k] = mergeSchemas({}, [propsA[k], propsB[k]], path.add(k));
+      result[k] = mergeSchemas({}, [propsA[k], propsB[k]], path.add(k), options);
     } else if (null == result[k]) {
       result[k] = propsB[k];
     }
   }
 
+  if (options.sortedObjects) {
+    let keys = Object.keys(result);
+    keys.sort();
+    let tmp = {};
+    for (let k of keys) {
+      tmp[k] = result[k];
+    }
+    result = tmp;
+  }
+
   return result;
 }
 
-function mergeEnumValues(a: string[], b: string[]) {
+function mergeEnumValues(a: string[], b: string[], sort: boolean) {
   if (null == a) return b;
   if (null == b) return a;
 
-  return arrayIntersection(a,b)
+  return arrayIntersection(a,b, sort);
 }
 
-function arrayUnion(a: string[], b: string[]) {
-  let tmp = {};
-  for (let k of a) {
-    tmp[k] = k;
-  }
-  for (let k of b) {
-    tmp[k] = k;
-  }
-  return Object.keys(tmp);
+function arrayUnion(a: string[], b: string[], sort: boolean) {
+  return _arrayUnionOrIntersection(a,b, false, sort);
 }
-function arrayIntersection(a: string[], b: string[]) {
+function arrayIntersection(a: string[], b: string[], sort: boolean) {
+  return _arrayUnionOrIntersection(a,b, true, sort);
+}
+
+function _arrayUnionOrIntersection(a,b,intersect:boolean, sort: boolean) {
   let tmp = {};
   for (let k of a) {
     tmp[k] = 1;
@@ -106,5 +122,12 @@ function arrayIntersection(a: string[], b: string[]) {
   for (let k of b) {
     tmp[k] = (tmp[k] || 0) + 1;
   }
-  return Object.keys(tmp).filter(k => (tmp === 2));
+  let result = Object.keys(tmp);
+  if (intersect) {
+    result = result.filter(k => (tmp[k] === 2));
+  }
+  if (sort) {
+    result.sort();
+  }
+  return result;
 }

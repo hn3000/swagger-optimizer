@@ -7,8 +7,8 @@ var jsonref = require('@hn3000/json-ref');
 var proc = new jsonref.JsonReferenceProcessor(fetchFile);
 var jp = jsonref.JsonPointer;
 
-var { findEnums, optimizeEnums, filterEnums } = require('./optimize-enums'); 
-var { findAllOfs, removeAllOfs } = require('./remove-allofs'); 
+import { findEnums, optimizeEnums, filterEnums } from './optimize-enums'; 
+import { findAllOfs, removeAllOfs } from './remove-allofs';
 
 var argv = mm(process.argv.slice(2));
 
@@ -61,7 +61,7 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
 
     if (argv["removeAllOfs"]) {
       consoleLog('remove allOf ...');
-      optimized = removeAllOfs(optimized || schema, allOfs);
+      optimized = removeAllOfs(optimized || schema, allOfs, argv);
     }
 
     if (null != optimized) {

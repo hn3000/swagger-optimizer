@@ -1,0 +1,84 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Example use of allOf (with some use of $ref, to make it more comprehensive)",
+        "version": "1.0",
+        "title": "allOf problem, repro"
+    },
+    "host": "localhost",
+    "basePath": "/",
+    "paths": {
+        "/demo": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "demoRequest",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/DemoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "hunky dory"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "DemoRequest": {
+            "type": "object",
+            "required": [
+                "g"
+            ],
+            "properties": {
+                "a": { "type": "string" },
+                "c": { "type": "string" },
+                "f": { "type": "string" },
+                "d": { "type": "string" }
+            },
+            "allOf": [
+                { "$ref": "#/definitions/MoreProperties" },
+                { "$ref": "#/definitions/BaseProperties" },
+                { "$ref": "#/definitions/MoreRequires" },
+                { "$ref": "#/definitions/BaseRequires" },
+                { "$ref": "#/definitions/RestrictsEnums" }
+            ]
+        },
+        "BaseProperties": {
+            "properties": {
+                "a": { "enum": [ "a", "b", "c" ] },
+                "b": {
+                    "type": "string",
+                    "enum": [ "a", "b", "c" ]
+                }
+            }
+        },
+        "MoreProperties": {
+            "properties": {
+                "f": { "enum": [ "a", "b", "c" ] },
+                "e": {
+                    "type": "string",
+                    "enum": [ "a", "b", "c" ]
+                }
+            }
+        },
+        "BaseRequires": {
+            "required": [ "a", "b", "f", "e" ]
+        },
+        "MoreRequires": {
+            "required": [ "f", "e", "d", "c" ]
+        },
+        "RestrictsEnums": {
+            "properties": {
+                "b": { "enum": [ "b" ] }
+            }
+        }
+    }
+}
