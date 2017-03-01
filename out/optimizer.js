@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 "use strict";
+exports.__esModule = true;
 var fs = require('fs');
 var mm = require('minimist');
 var jsonref = require('@hn3000/json-ref');
@@ -64,7 +65,10 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
                 console.log(JSON.stringify(optimized, null, 2));
             }
         }
-    });
+        else if (argv['printOutput'] || argv['writeOutput']) {
+            console.error("optimizer returned " + JSON.stringify(optimized));
+        }
+    }).then(null, function (x) { return console.error(x); });
 }
 function fetchFile(x) {
     return Promise.resolve(x).then(function (x) {

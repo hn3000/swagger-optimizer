@@ -1,11 +1,10 @@
 
-var jsonref = require('@hn3000/json-ref');
-var jp = jsonref.JsonPointer;
+import { JsonPointer } from '@hn3000/json-ref';
 
 export function findEnums(schema, fn) {
   var defs = schema.definitions;
   var queue = [schema];
-  var paths = [new jp("")];
+  var paths: JsonPointer[] = [new JsonPointer("")];
   var enums = [];
 
   var count = 0;
@@ -28,7 +27,7 @@ export function findEnums(schema, fn) {
           let values = thisOne[p].enum;
           let name = p;
           if (name === 'items') {
-            let segs = thisPath.segments;
+            let segs = thisPath.keys;
             name = segs.pop();
           } else if (/^\d+$/.test(name)) {
             // skip parameters

@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var objectwalker_1 = require("./objectwalker");
 function findAllOfs(schema) {
     return objectwalker_1.walkObject(schema, collectAllOf, []);

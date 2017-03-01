@@ -73,9 +73,11 @@ for (var i = 0, n = argv._.length; i < n; ++i) {
       if (argv['printOutput']) {
         console.log(JSON.stringify(optimized,null,2));
       }
+    } else if (argv['printOutput'] || argv['writeOutput']) {
+      console.error(`optimizer returned ${JSON.stringify(optimized)}`);
     }
 
-  });
+  }).then(null, (x) => console.error(x));
 }
 
 function fetchFile(x) {

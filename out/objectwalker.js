@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var jsonref = require("@hn3000/json-ref");
 var pointer = jsonref.JsonPointer;
 function walkObject(object, walker, acc) {
@@ -12,6 +13,7 @@ function walkObject(object, walker, acc) {
         queue.splice(0, 1);
         paths.splice(0, 1);
         if (count % 100 == 99) {
+            //console.log(`examining ${thisPath}`);
         }
         ++count;
         var props = Object.keys(thisOne);
@@ -24,6 +26,8 @@ function walkObject(object, walker, acc) {
                     queue.push(thisOne[p]);
                     paths.push(herePath);
                 }
+                //      } else {
+                //        console.log(`ignoring ${hereVal} @ ${thisPath}[${p}]`);
             }
         }
     }

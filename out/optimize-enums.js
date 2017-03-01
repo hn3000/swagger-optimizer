@@ -1,10 +1,10 @@
 "use strict";
-var jsonref = require('@hn3000/json-ref');
-var jp = jsonref.JsonPointer;
+exports.__esModule = true;
+var json_ref_1 = require("@hn3000/json-ref");
 function findEnums(schema, fn) {
     var defs = schema.definitions;
     var queue = [schema];
-    var paths = [new jp("")];
+    var paths = [new json_ref_1.JsonPointer("")];
     var enums = [];
     var count = 0;
     while (0 !== queue.length) {
@@ -13,6 +13,7 @@ function findEnums(schema, fn) {
         queue.splice(0, 1);
         paths.splice(0, 1);
         if (count % 100 == 99) {
+            //console.log(`examining ${thisPath}`);
         }
         ++count;
         var props = Object.keys(thisOne);
@@ -22,7 +23,7 @@ function findEnums(schema, fn) {
                     var values_1 = thisOne[p]["enum"];
                     var name_1 = p;
                     if (name_1 === 'items') {
-                        var segs = thisPath.segments;
+                        var segs = thisPath.keys;
                         name_1 = segs.pop();
                     }
                     else if (/^\d+$/.test(name_1)) {
