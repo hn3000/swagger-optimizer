@@ -31,7 +31,7 @@ function taggedOperationMatcher(tagProp, inTags, notinTags) {
                 result = inTags.every(function (x) { return -1 === tags_1.indexOf(x); });
             }
             if (!result && null != notinTags) {
-                result = notinTags.every(function (x) { return -1 !== tags_1.indexOf(x); });
+                result = notinTags.some(function (x) { return -1 !== tags_1.indexOf(x); });
             }
         }
         return result;

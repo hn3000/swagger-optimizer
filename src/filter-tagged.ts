@@ -42,7 +42,7 @@ function taggedOperationMatcher(tagProp: string, inTags: string[], notinTags: st
         result = inTags.every(x => -1 === tags.indexOf(x));
       }
       if (!result && null != notinTags) {
-        result = notinTags.every(x => -1 !== tags.indexOf(x));
+        result = notinTags.some(x => -1 !== tags.indexOf(x));
       }
 
     }
