@@ -1,7 +1,11 @@
 {
   "name": "@hn3000/swagger-optimizer",
   "version": "0.9.0",
-  "description": "",
+  "description": "Simple tool to transform swagger API specifications.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hn3000/swagger-optimizer"
+  },
   "main": "out/optimizer.js",
   "bin": "bin/swagger-optimizer",
   "scripts": {
@@ -16,7 +20,6 @@
     "minimist": "^1.2.0"
   },
   "devDependencies": {
-    "@types/es6-promise": "0.0.32",
     "@types/node": "^7.0.42",
     "tsc": "^1.20150623.0",
     "typescript": "^2.5.1"
