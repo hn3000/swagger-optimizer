@@ -1,7 +1,15 @@
-
+import { IFilterStep } from './filter-step';
 import { walkObject } from './objectwalker';
 import { JsonPointer } from '@hn3000/json-ref';
 
+const filterStep: IFilterStep = (schema: any, options: any) => {
+  let all = findAllOfs(schema);
+  let result = removeAllOfs(schema, all, options);
+
+  return result;
+};
+
+export default filterStep;
 
 export function findAllOfs(schema: any): JsonPointer[] {
   return walkObject(schema, collectAllOf, []);

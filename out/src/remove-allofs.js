@@ -1,12 +1,4 @@
-"use strict";
-exports.__esModule = true;
-var objectwalker_1 = require("./objectwalker");
-var filterStep = function (schema, options) {
-    var all = findAllOfs(schema);
-    var result = removeAllOfs(schema, all, options);
-    return result;
-};
-exports["default"] = filterStep;
+var objectwalker_1 = require('./objectwalker');
 function findAllOfs(schema) {
     return objectwalker_1.walkObject(schema, collectAllOf, []);
 }
@@ -21,8 +13,8 @@ function collectAllOf(hereVal, herePath, acc) {
 function removeAllOfs(schema, allOfs, options) {
     var result = JSON.parse(JSON.stringify(schema));
     var defs = result.definitions;
-    for (var _i = 0, allOfs_1 = allOfs; _i < allOfs_1.length; _i++) {
-        var a = allOfs_1[_i];
+    for (var _i = 0; _i < allOfs.length; _i++) {
+        var a = allOfs[_i];
         var p = a.parent;
         var target = p.getValue(result);
         var allOf = a.getValue(result);
@@ -33,8 +25,8 @@ function removeAllOfs(schema, allOfs, options) {
 }
 exports.removeAllOfs = removeAllOfs;
 function mergeSchemas(target, sources, path, options) {
-    for (var _i = 0, sources_1 = sources; _i < sources_1.length; _i++) {
-        var s = sources_1[_i];
+    for (var _i = 0; _i < sources.length; _i++) {
+        var s = sources[_i];
         mergeIntoSchema(target, s, path, options);
     }
     return target;
@@ -47,15 +39,15 @@ function mergeIntoSchema(target, source, path, options) {
     else if (null == target.type) {
         target.type = source.type;
     }
-    var targetEnum = mergeEnumValues(target["enum"], source["enum"], options.sortedObjects);
-    if (null != target["enum"] && target["enum"].length != 0 && targetEnum.length == 0 && null != source["enum"]) {
-        console.warn("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source["enum"].join(',') + "]");
+    var targetEnum = mergeEnumValues(target.enum, source.enum, options.sortedObjects);
+    if (null != target.enum && target.enum.length != 0 && targetEnum.length == 0 && null != source.enum) {
+        console.warn("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source.enum.join(',') + "]");
     }
     if (null != targetEnum) {
-        target["enum"] = targetEnum;
+        target.enum = targetEnum;
     }
     else {
-        delete target["enum"];
+        delete target.enum;
     }
     if (target.required && source.required) {
         target.required = arrayUnion(source.required, target.required, options.sortedObjects);
@@ -89,8 +81,8 @@ function mergeProperties(propsA, propsB, path, options) {
         var keys = Object.keys(result);
         keys.sort();
         var tmp = {};
-        for (var _d = 0, keys_1 = keys; _d < keys_1.length; _d++) {
-            var k = keys_1[_d];
+        for (var _d = 0; _d < keys.length; _d++) {
+            var k = keys[_d];
             tmp[k] = result[k];
         }
         result = tmp;
@@ -112,12 +104,12 @@ function arrayIntersection(a, b, sort) {
 }
 function _arrayUnionOrIntersection(a, b, intersect, sort) {
     var tmp = {};
-    for (var _i = 0, a_1 = a; _i < a_1.length; _i++) {
-        var k = a_1[_i];
+    for (var _i = 0; _i < a.length; _i++) {
+        var k = a[_i];
         tmp[k] = 1;
     }
-    for (var _a = 0, b_1 = b; _a < b_1.length; _a++) {
-        var k = b_1[_a];
+    for (var _a = 0; _a < b.length; _a++) {
+        var k = b[_a];
         tmp[k] = (tmp[k] || 0) + 1;
     }
     var result = Object.keys(tmp);
@@ -129,4 +121,3 @@ function _arrayUnionOrIntersection(a, b, intersect, sort) {
     }
     return result;
 }
-//# sourceMappingURL=remove-allofs.js.map

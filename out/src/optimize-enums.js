@@ -1,6 +1,4 @@
-"use strict";
-exports.__esModule = true;
-var json_ref_1 = require("@hn3000/json-ref");
+var json_ref_1 = require('@hn3000/json-ref');
 function findEnums(schema, fn) {
     var defs = schema.definitions;
     var queue = [schema];
@@ -13,23 +11,24 @@ function findEnums(schema, fn) {
         queue.splice(0, 1);
         paths.splice(0, 1);
         if (count % 100 == 99) {
-            //console.log(`examining ${thisPath}`);
         }
         ++count;
         var props = Object.keys(thisOne);
-        var _loop_1 = function () {
+        for (var _i = 0; _i < props.length; _i++) {
+            var p = props[_i];
             if (thisOne[p]) {
-                if (thisOne[p]["enum"] != null) {
-                    var values_1 = thisOne[p]["enum"];
+                if (thisOne[p].enum != null) {
+                    var values = thisOne[p].enum;
                     var name_1 = p;
                     if (name_1 === 'items') {
                         var segs = thisPath.keys;
                         name_1 = segs.pop();
                     }
                     else if (/^\d+$/.test(name_1)) {
-                        return "continue";
+                        // skip parameters
+                        continue;
                     }
-                    var prev = enums.filter(function (x) { return sameValuesAllowed(values_1, x.values); });
+                    var prev = enums.filter(function (x) { return sameValuesAllowed(values, x.values); });
                     if (0 !== prev.length) {
                         var entry = prev[0];
                         entry.where.push(thisPath.toString());
@@ -41,7 +40,7 @@ function findEnums(schema, fn) {
                     }
                     else {
                         enums.push({
-                            values: values_1,
+                            values: values,
                             props: [p],
                             name: name_1,
                             names: [name_1],
@@ -55,14 +54,10 @@ function findEnums(schema, fn) {
                     paths.push(thisPath.add(p));
                 }
             }
-        };
-        for (var _i = 0, props_1 = props; _i < props_1.length; _i++) {
-            var p = props_1[_i];
-            _loop_1();
         }
     }
-    for (var _a = 0, enums_1 = enums; _a < enums_1.length; _a++) {
-        var e = enums_1[_a];
+    for (var _a = 0; _a < enums.length; _a++) {
+        var e = enums[_a];
         e.name = e.names.reduce(function (a, b) { return (a.length <= b.length ? a : b); });
     }
     return enums;
@@ -71,8 +66,8 @@ exports.findEnums = findEnums;
 function optimizeEnums(schema, enums) {
     var result = JSON.parse(JSON.stringify(schema));
     var defs = result.definitions;
-    for (var _i = 0, enums_2 = enums; _i < enums_2.length; _i++) {
-        var e = enums_2[_i];
+    for (var _i = 0; _i < enums.length; _i++) {
+        var e = enums[_i];
         var p = e.paths[0].add(e.props[0]);
         var t = p.getValue(result);
         var nname = "" + e.name.substring(0, 1).toUpperCase() + e.name.substring(1);
@@ -102,4 +97,3 @@ function filterEnums(enums, argv) {
     return redundantEnums;
 }
 exports.filterEnums = filterEnums;
-//# sourceMappingURL=optimize-enums.js.map
