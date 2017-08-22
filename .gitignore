@@ -6,3 +6,4 @@ generated
 !*/*.json
 *.html
 !*/*.html
+examples/*
