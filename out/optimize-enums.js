@@ -21,12 +21,12 @@ function findEnums(schema, fn) {
             if (thisOne[p]) {
                 if (thisOne[p]["enum"] != null) {
                     var values_1 = thisOne[p]["enum"];
-                    var name_1 = p;
-                    if (name_1 === 'items') {
+                    var name = p;
+                    if (name === 'items') {
                         var segs = thisPath.keys;
-                        name_1 = segs.pop();
+                        name = segs.pop();
                     }
-                    else if (/^\d+$/.test(name_1)) {
+                    else if (/^\d+$/.test(name)) {
                         return "continue";
                     }
                     var prev = enums.filter(function (x) { return sameValuesAllowed(values_1, x.values); });
@@ -35,16 +35,16 @@ function findEnums(schema, fn) {
                         entry.where.push(thisPath.toString());
                         entry.paths.push(thisPath);
                         entry.props.push(p);
-                        if (-1 === entry.names.indexOf(name_1)) {
-                            entry.names.push(name_1);
+                        if (-1 === entry.names.indexOf(name)) {
+                            entry.names.push(name);
                         }
                     }
                     else {
                         enums.push({
                             values: values_1,
                             props: [p],
-                            name: name_1,
-                            names: [name_1],
+                            name: name,
+                            names: [name],
                             where: [thisPath.toString()],
                             paths: [thisPath]
                         });
