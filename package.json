@@ -17,11 +17,11 @@
   "dependencies": {
     "@hn3000/json-ref": "^0.10.1",
     "isomorphic-fetch": "^2.2.1",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.5"
   },
   "devDependencies": {
     "@types/node": "^7.0.42",
     "tsc": "^1.20150623.0",
-    "typescript": "^2.5.1"
+    "typescript": "^2.6.1"
   }
 }
