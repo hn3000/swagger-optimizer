@@ -1,10 +1,11 @@
 #! /usr/bin/env node
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -15,8 +16,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,10 +36,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 exports.__esModule = true;
 var fs = require("fs");
 var mm = require("minimist");
 var jsonref = require("@hn3000/json-ref");
+var openapi_version_1 = require("./openapi-version");
 var filter_tagged_1 = require("./filter-tagged");
 var remove_allofs_1 = require("./remove-allofs");
 var dynamicSteps = {
@@ -47,20 +58,38 @@ var dynamicSteps = {
 };
 //console.log(process.argv);
 var proc = new jsonref.JsonReferenceProcessor(fetchFile);
-var jp = jsonref.JsonPointer;
 var optimize_enums_1 = require("./optimize-enums");
 var remove_allofs_2 = require("./remove-allofs");
+var util_1 = require("./util");
 var argv = mm(process.argv.slice(2));
 var useLogging = !argv.printOutput;
-consoleLog(argv);
-var mainPromise = main(argv);
+var useDebug = !argv.debug;
+debugLog(argv);
+var mainPromise = (argv.help || argv._.length == 0) ? help() : main(argv);
 mainPromise.then(function () { return consoleLog('done.'); }, function (x) { return console.error('error in main', x); });
 function consoleLog(msg) {
     var args = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         args[_i - 1] = arguments[_i];
     }
-    useLogging && console.log.apply(console, [msg].concat(args));
+    useLogging && console.log.apply(console, __spreadArray([msg], args, false));
+}
+function debugLog(msg) {
+    var args = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        args[_i - 1] = arguments[_i];
+    }
+    useDebug && console.log.apply(console, __spreadArray([msg], args, false));
+}
+function help() {
+    return __awaiter(this, void 0, void 0, function () {
+        var helpText;
+        return __generator(this, function (_a) {
+            helpText = "usage: {process.argv[1]}\noptions:\n  --help                  print this text\n  --deref=true            dereference all instances of $ref found in the file\n  --optimizeEnums=true    run the enum optimization\n  --rename={\"oldName\": \"newName\", ...}\n                          rename enums\n  --optimizeNumericEnums  also consider purely numeric enums for optimization\n  --removeAllOfs=true     replace allOf by copying all attributes\n  --step=x                additional steps to run:\n  --step=filter-tagged({\"in\":['some-tag']})\n  --step=filter-tagged({\"notin\":['other-tag']})\n                          filter operations by tag -- \"in\" requires tag\n  --step=remove-allofs    just like --removeAllOfs=true\n  --printOutput=true      print the optimized JSON on the console\n  --writeOutput=true      write the optimized JSON for $file.json to $file.opt.json\n  --debug=true            print some debug info\n";
+            console.log(helpText);
+            return [2 /*return*/];
+        });
+    });
 }
 function main(argv) {
     return __awaiter(this, void 0, void 0, function () {
@@ -83,9 +112,10 @@ function main(argv) {
                         if (-1 != openPos && ((x.length - 1) === closePos)) {
                             name = x.substring(0, openPos);
                             args = JSON.parse(x.substring(openPos + 1, closePos));
+                            args = proc._expandDynamic(args, ''); // process $ref
                         }
                         if (null == dynamicSteps[name]) {
-                            console.warn("unknown step " + name);
+                            console.warn("unknown step ".concat(name));
                         }
                         return [dynamicSteps[name], args];
                     }).filter(function (x) { return null != x[0]; });
@@ -122,22 +152,44 @@ function main(argv) {
 }
 function optimizeSchema(schema, fn, filterSteps) {
     return __awaiter(this, void 0, void 0, function () {
-        var enums, redundantEnums, allOfs, nameMap, _i, redundantEnums_1, e, newName, optimized, i, n, step, options, optfn;
+        var version, enums, redundantEnums, allOfs, nameMap, otherNames, foundNames, unusedNames, _loop_1, _i, redundantEnums_1, e, optimized, i, n, step, options, optfn;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    consoleLog("hunting for instances of enum and allOf in " + fn, Object.keys(schema));
-                    enums = optimize_enums_1.findEnums(schema, fn);
-                    redundantEnums = optimize_enums_1.filterEnums(enums, argv);
-                    allOfs = remove_allofs_2.findAllOfs(schema);
+                    version = (0, openapi_version_1.findVersion)(schema);
+                    consoleLog("optimizing ".concat(version.name, " ").concat(fn), Object.keys(schema));
+                    debugLog;
+                    enums = (0, optimize_enums_1.findEnums)(schema, fn);
+                    redundantEnums = (0, optimize_enums_1.filterEnums)(enums, argv);
+                    allOfs = (0, remove_allofs_2.findAllOfs)(schema);
                     if (null != argv['rename']) {
                         nameMap = JSON.parse(argv['rename']);
+                        otherNames = [];
+                        foundNames = [];
+                        unusedNames = Object.keys(nameMap);
+                        _loop_1 = function (e) {
+                            var name = (0, util_1.capitalize)(e.name);
+                            if (null != nameMap[name]) {
+                                var newName = nameMap[name];
+                                e.name = newName;
+                                foundNames.push(name);
+                                var index = unusedNames.findIndex(function (x) { return x === name; });
+                                if (-1 != index) {
+                                    unusedNames.splice(index, 1);
+                                }
+                            }
+                            else {
+                                otherNames.push(name);
+                            }
+                        };
                         for (_i = 0, redundantEnums_1 = redundantEnums; _i < redundantEnums_1.length; _i++) {
                             e = redundantEnums_1[_i];
-                            if (null != nameMap[e.name]) {
-                                newName = nameMap[e.name];
-                                e.name = newName;
-                            }
+                            _loop_1(e);
+                        }
+                        if (argv["debug"] && useLogging && unusedNames.length) {
+                            consoleLog("  unused rename entries: ".concat(unusedNames.join(', '), "}"));
+                            consoleLog("  found rename entries: ".concat(foundNames.join(', '), "}"));
+                            consoleLog("  other enum entries: ".concat(otherNames.join(', '), "}"));
                         }
                     }
                     if (argv["debug"] && useLogging) {
@@ -147,11 +199,11 @@ function optimizeSchema(schema, fn, filterSteps) {
                     optimized = schema;
                     if (argv["optimizeEnums"]) {
                         consoleLog('optimize enums ...');
-                        optimized = optimize_enums_1.optimizeEnums(optimized, redundantEnums);
+                        optimized = (0, optimize_enums_1.optimizeEnums)(optimized, redundantEnums, version);
                     }
                     if (argv["removeAllOfs"]) {
                         consoleLog('remove allOf ...');
-                        optimized = remove_allofs_2.removeAllOfs(optimized, allOfs, argv);
+                        optimized = (0, remove_allofs_2.removeAllOfs)(optimized, allOfs, argv);
                     }
                     i = 0, n = filterSteps.length;
                     _a.label = 1;
@@ -172,14 +224,22 @@ function optimizeSchema(schema, fn, filterSteps) {
                         if (argv['writeOutput']) {
                             optfn = fn.replace(/\.json/, '.opt.json');
                             fs.writeFileSync(optfn, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
-                            consoleLog("wrote " + optfn + ".");
+                            consoleLog("wrote ".concat(optfn, "."));
                         }
                         if (argv['printOutput']) {
                             console.log(JSON.stringify(optimized, null, 2));
                         }
+                        if (!argv['writeOutput'] && !argv['printOutput']) {
+                            console.log("optimized successfully, not printing result, need --printOutput=true or --writeOutput=true option");
+                        }
                     }
-                    else if (argv['printOutput'] || argv['writeOutput']) {
-                        console.error("optimizer returned " + JSON.stringify(optimized));
+                    else {
+                        if (argv['printOutput'] || argv['writeOutput']) {
+                            console.error("optimizer returned ".concat(JSON.stringify(optimized)));
+                        }
+                        else {
+                            console.error("optimization failed");
+                        }
                     }
                     return [2 /*return*/];
             }

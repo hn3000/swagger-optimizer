@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+exports.walkObject = void 0;
 var jsonref = require("@hn3000/json-ref");
 var pointer = jsonref.JsonPointer;
 function walkObject(object, walker, acc) {

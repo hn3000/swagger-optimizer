@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as mm from 'minimist';
 import * as jsonref from  '@hn3000/json-ref';
 
+import { findVersion, OpenAPIVersion } from './openapi-version';
 import { IFilterStep } from './filter-step';
 
 import filterTaggedStep from './filter-tagged';
@@ -16,16 +17,18 @@ const dynamicSteps: { [k:string]: IFilterStep }  = {
 
 //console.log(process.argv);
 var proc = new jsonref.JsonReferenceProcessor(fetchFile);
-var jp = jsonref.JsonPointer;
 
 import { findEnums, optimizeEnums, filterEnums } from './optimize-enums';
 import { findAllOfs, removeAllOfs } from './remove-allofs';
+import { capitalize } from './util';
 
 var argv = mm(process.argv.slice(2));
 
 var useLogging = !argv.printOutput;
-consoleLog(argv);
-const mainPromise = main(argv);
+var useDebug = !argv.debug;
+debugLog(argv);
+
+const mainPromise = (argv.help || argv._.length == 0) ? help() : main(argv);
 
 mainPromise.then(
   () => consoleLog('done.'),
@@ -35,6 +38,32 @@ mainPromise.then(
 
 function consoleLog(msg, ...args) {
   useLogging && console.log(msg, ...args);
+}
+function debugLog(msg, ...args) {
+  useDebug && console.log(msg, ...args);
+}
+
+async function help() {
+  const helpText = `usage: {process.argv[1]}
+options:
+  --help                  print this text
+  --deref=true            dereference all instances of $ref found in the file
+  --optimizeEnums=true    run the enum optimization
+  --rename={"oldName": "newName", ...}
+                          rename enums
+  --optimizeNumericEnums  also consider purely numeric enums for optimization
+  --removeAllOfs=true     replace allOf by copying all attributes
+  --step=x                additional steps to run:
+  --step=filter-tagged({"in":['some-tag']})
+  --step=filter-tagged({"notin":['other-tag']})
+                          filter operations by tag -- "in" requires tag
+  --step=remove-allofs    just like --removeAllOfs=true
+  --printOutput=true      print the optimized JSON on the console
+  --writeOutput=true      write the optimized JSON for $file.json to $file.opt.json
+  --debug=true            print some debug info
+`;
+
+  console.log(helpText);
 }
 
 async function main(argv: any) {
@@ -54,6 +83,7 @@ async function main(argv: any) {
     if (-1 != openPos && ((x.length - 1) === closePos)) {
       name = x.substring(0, openPos);
       args = JSON.parse(x.substring(openPos + 1, closePos));
+      args = proc._expandDynamic(args, ''); // process $ref
     }
     if (null == dynamicSteps[name]) {
       console.warn(`unknown step ${name}`);
@@ -82,21 +112,38 @@ async function main(argv: any) {
   }
 }
 
-
 async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
-  consoleLog(`hunting for instances of enum and allOf in ${fn}`, Object.keys(schema));
+  const version = findVersion(schema);
+  consoleLog(`optimizing ${version.name} ${fn}`, Object.keys(schema));
+  debugLog
 
   let enums = findEnums(schema, fn);
   let redundantEnums = filterEnums(enums, argv);
   let allOfs = findAllOfs(schema);
-
+  
   if (null != argv['rename']) {
     let nameMap = JSON.parse(argv['rename']);
+    const otherNames = [];
+    const foundNames = [];
+    const unusedNames = Object.keys(nameMap);
     for (let e of redundantEnums) {
-      if (null != nameMap[e.name]) {
-        let newName = nameMap[e.name];
+      const name = capitalize(e.name);
+      if (null != nameMap[name]) {
+        let newName = nameMap[name];
         e.name = newName;
+        foundNames.push(name);
+        const index = unusedNames.findIndex(x => x === name);
+        if (-1 != index) {
+          unusedNames.splice(index, 1);
+        }
+      } else {
+        otherNames.push(name);
       }
+    }
+    if (argv["debug"] && useLogging && unusedNames.length) {
+      consoleLog(`  unused rename entries: ${unusedNames.join(', ')}}`);
+      consoleLog(`  found rename entries: ${foundNames.join(', ')}}`);
+      consoleLog(`  other enum entries: ${otherNames.join(', ')}}`);
     }
   }
 
@@ -109,7 +156,7 @@ async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
 
   if (argv["optimizeEnums"]) {
     consoleLog('optimize enums ...');
-    optimized = optimizeEnums(optimized, redundantEnums);
+    optimized = optimizeEnums(optimized, redundantEnums, version);
   }
 
   if (argv["removeAllOfs"]) {
@@ -127,16 +174,25 @@ async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
   }
 
   if (null != optimized) {
-    if (argv['writeOutput']) {
-      let optfn = fn.replace(/\.json/, '.opt.json');
-      fs.writeFileSync(optfn, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
-      consoleLog(`wrote ${optfn}.`);
+    const writeOutput = argv['writeOutput'];
+    if (writeOutput) {
+      const isString = typeof writeOutput === 'string';
+      let outputFilename = (isString) ? writeOutput : fn.replace(/\.json/, '.opt.json');
+      fs.writeFileSync(outputFilename, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
+      consoleLog(`wrote ${outputFilename}.`);
     }
     if (argv['printOutput']) {
       console.log(JSON.stringify(optimized, null, 2));
     }
-  } else if (argv['printOutput'] || argv['writeOutput']) {
-    console.error(`optimizer returned ${JSON.stringify(optimized)}`);
+    if (!argv['writeOutput'] && !argv['printOutput']) {
+      console.log(`optimized successfully, not printing result, need --printOutput=true or --writeOutput=true option`);
+    }
+  } else {
+    if (argv['printOutput'] || argv['writeOutput']) {
+      console.error(`optimizer returned ${JSON.stringify(optimized)}`);
+    } else {
+      console.error(`optimization failed`);
+    }
   }
 }
 

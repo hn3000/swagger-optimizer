@@ -1,8 +1,8 @@
 
 import { JsonPointer } from '@hn3000/json-ref';
+import { OpenAPIVersion } from './openapi-version';
 
 export function findEnums(schema, fn) {
-  var defs = schema.definitions;
   var queue = [schema];
   var paths: JsonPointer[] = [new JsonPointer("")];
   var enums = [];
@@ -27,8 +27,14 @@ export function findEnums(schema, fn) {
           let values = thisOne[p].enum;
           let name = p;
           if (name === 'items') {
-            let segs = thisPath.keys;
+            let segs = thisPath.keys.slice();
             name = segs.pop();
+          } else if (name === 'type') {
+            let segs = thisPath.keys.slice();
+            if (segs[segs.length-1] == 'properties') {
+              segs.pop();
+            }
+            name = segs.pop()+'Type';
           } else if (/^\d+$/.test(name)) {
             // skip parameters
             continue;
@@ -67,16 +73,28 @@ export function findEnums(schema, fn) {
   return enums;
 }
 
-export function optimizeEnums(schema, enums) {
+function sameEnum(a, b) {
+  return a.type === b.type && a.enum && b.enum && sameValuesAllowed(a.enum, b.enum);
+}
+
+export function optimizeEnums(schema, enums, version: OpenAPIVersion) {
   let result = JSON.parse(JSON.stringify(schema));
-  let defs = result.definitions;
+  let defs = version.definitionsPath.getValue(result);
+  let defsPath = version.definitionsPath.asString();
+
+  if (undefined == defs) {
+    console.warn(`  no definitions found at ${version.definitionsPath.toString()}`);
+  }
 
   for (let e of enums) {
     let p = e.paths[0].add(e.props[0]);
     let t = p.getValue(result);
     let nname = `${e.name.substring(0,1).toUpperCase()}${e.name.substring(1)}`;
+    if (defs[nname] && !sameEnum(defs[nname], t)) {
+      console.warn(`  possibly overwriting definition for ${nname}`, defs[nname], t);
+    }
     defs[nname] = t;
-    let ref = { "$ref": `#/definitions/${nname}` };
+    let ref = { "$ref": `#${defsPath}/${nname}` };
 
     for (let i=0,n=e.paths.length; i<n; ++i) {
       p = e.paths[i].add(e.props[i]);
@@ -87,7 +105,7 @@ export function optimizeEnums(schema, enums) {
   return result;
 }
 
-function sameValuesAllowed(a, b) {
+function sameValuesAllowed(a: string[], b: string[]) {
   return (
     a.length === b.length
     && a.every(xa => b.some(xb => xb === xa))
@@ -96,7 +114,7 @@ function sameValuesAllowed(a, b) {
 }
 
 export function filterEnums(enums, argv:any) {
-  let redundantEnums = enums.filter(e => (e.props.length > 1 && e.values.length > 1));
+  let redundantEnums = enums.filter(e => (e.props.length >= 1 && e.values.length > 1));
 
   if (argv['optimizeNumericEnums']) {
     redundantEnums = redundantEnums.filter(e => (e.values.every(x => (typeof x === 'number'))));

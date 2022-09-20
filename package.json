@@ -1,6 +1,6 @@
 {
   "name": "@hn3000/swagger-optimizer",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Simple tool to transform swagger API specifications.",
   "repository": {
     "type": "git",
@@ -10,18 +10,18 @@
   "bin": "bin/swagger-optimizer",
   "scripts": {
     "tsc": "tsc",
+    "tsc:w": "tsc --watch",
     "test": "node "
   },
   "author": "Harald Niesche",
   "license": "MIT",
   "dependencies": {
-    "@hn3000/json-ref": "^0.10.1",
-    "isomorphic-fetch": "^2.2.1",
-    "minimist": "^1.2.5"
+    "@hn3000/json-ref": "^1.1.3",
+    "isomorphic-fetch": "^3.0.0",
+    "minimist": "^1.2.6"
   },
   "devDependencies": {
-    "@types/node": "^7.0.42",
-    "tsc": "^1.20150623.0",
-    "typescript": "^2.6.1"
+    "@types/node": "^18.0.0",
+    "typescript": "^4.8.3"
   }
 }

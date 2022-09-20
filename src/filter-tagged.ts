@@ -32,8 +32,8 @@ function taggedOperationMatcher(tagProp: string, inTags: string[], notinTags: st
 
     let result = true;
 
-    if (null != operation && null != operation[tagProp]) {
-      let tags: string | string[] = operation[tagProp];
+    if (null != operation && null != operation[tagName]) {
+      let tags: string | string[] = operation[tagName];
       if (typeof tags === 'string') {
         tags = [tags];
       }

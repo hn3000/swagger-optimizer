@@ -1,6 +1,7 @@
 import { IFilterStep } from './filter-step';
 import { walkObject } from './objectwalker';
 import { JsonPointer } from '@hn3000/json-ref';
+import { findVersion } from './openapi-version';
 
 const filterStep: IFilterStep = (schema: any, options: any) => {
   let all = findAllOfs(schema);
@@ -30,7 +31,8 @@ export interface IRemoveAllOfOptions {
 
 export function removeAllOfs(schema, allOfs: JsonPointer[], options: IRemoveAllOfOptions) {
   let result = JSON.parse(JSON.stringify(schema));
-  let defs = result.definitions;
+  let version = findVersion(result);
+//  let defs = version.definitionsPath.getValue(result);
 
   for (let a of allOfs) {
     let p = a.parent;

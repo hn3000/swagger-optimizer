@@ -1,6 +1,8 @@
 "use strict";
 exports.__esModule = true;
+exports.removeAllOfs = exports.findAllOfs = void 0;
 var objectwalker_1 = require("./objectwalker");
+var openapi_version_1 = require("./openapi-version");
 var filterStep = function (schema, options) {
     var all = findAllOfs(schema);
     var result = removeAllOfs(schema, all, options);
@@ -8,7 +10,7 @@ var filterStep = function (schema, options) {
 };
 exports["default"] = filterStep;
 function findAllOfs(schema) {
-    return objectwalker_1.walkObject(schema, collectAllOf, []);
+    return (0, objectwalker_1.walkObject)(schema, collectAllOf, []);
 }
 exports.findAllOfs = findAllOfs;
 function collectAllOf(hereVal, herePath, acc) {
@@ -20,7 +22,8 @@ function collectAllOf(hereVal, herePath, acc) {
 }
 function removeAllOfs(schema, allOfs, options) {
     var result = JSON.parse(JSON.stringify(schema));
-    var defs = result.definitions;
+    var version = (0, openapi_version_1.findVersion)(result);
+    //  let defs = version.definitionsPath.getValue(result);
     for (var _i = 0, allOfs_1 = allOfs; _i < allOfs_1.length; _i++) {
         var a = allOfs_1[_i];
         var p = a.parent;
@@ -42,14 +45,14 @@ function mergeSchemas(target, sources, path, options) {
 function mergeIntoSchema(target, source, path, options) {
     //console.log("merging", source, "into", target);
     if (null != target.type && null != source.type && target.type !== source.type) {
-        console.warn("different types for " + path.toString() + ": " + target.type + " !== " + source.type);
+        console.warn("different types for ".concat(path.toString(), ": ").concat(target.type, " !== ").concat(source.type));
     }
     else if (null == target.type) {
         target.type = source.type;
     }
     var targetEnum = mergeEnumValues(target["enum"], source["enum"], options.sortedObjects);
     if (null != target["enum"] && target["enum"].length != 0 && targetEnum.length == 0 && null != source["enum"]) {
-        console.warn("intersection of enums is empty @" + path.toString() + ": [" + targetEnum.join(',') + "] / [" + source["enum"].join(',') + "]");
+        console.warn("intersection of enums is empty @".concat(path.toString(), ": [").concat(targetEnum.join(','), "] / [").concat(source["enum"].join(','), "]"));
     }
     if (null != targetEnum) {
         target["enum"] = targetEnum;
