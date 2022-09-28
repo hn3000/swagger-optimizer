@@ -93,12 +93,23 @@ export function optimizeEnums(schema, enums, version: OpenAPIVersion) {
     if (defs[nname] && !sameEnum(defs[nname], t)) {
       console.warn(`  possibly overwriting definition for ${nname}`, defs[nname], t);
     }
+    if (!t.title) {
+      let title = nname;
+      if (!title.endsWith('Enum')) {
+        title+='Enum';
+      }
+      t.title = title;
+    }
+
     defs[nname] = t;
-    let ref = { "$ref": `#${defsPath}/${nname}` };
+    const myPath = `${defsPath}/${nname}`;
+    const ref = { "$ref": `#${myPath}` };
 
     for (let i=0,n=e.paths.length; i<n; ++i) {
       p = e.paths[i].add(e.props[i]);
-      p.setValue(result, ref);
+      if (p.asString() !== myPath) {
+        p.setValue(result, ref);
+      }
     }
   }
 
