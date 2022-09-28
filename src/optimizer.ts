@@ -115,7 +115,6 @@ async function main(argv: any) {
 async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
   const version = findVersion(schema);
   consoleLog(`optimizing ${version.name} ${fn}`, Object.keys(schema));
-  debugLog
 
   let enums = findEnums(schema, fn);
   let redundantEnums = filterEnums(enums, argv);
@@ -148,8 +147,9 @@ async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
   }
 
   if (argv["debug"] && useLogging) {
-    consoleLog(fn, 'enums:', redundantEnums);
-    consoleLog(fn, 'allOfs:', allOfs);
+    //consoleLog(fn, 'enums:', JSON.stringify(redundantEnums, (x: any) => ((x instanceof jsonref.JsonReference) ? x.toString() : x), 4));
+    debugLog(fn, 'enums:', redundantEnums, JSON.stringify(redundantEnums, null, 4));
+    debugLog(fn, 'allOfs:', allOfs);
   }
 
   let optimized = schema;
