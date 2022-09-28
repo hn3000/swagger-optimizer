@@ -93,11 +93,21 @@ function optimizeEnums(schema, enums, version) {
         if (defs[nname] && !sameEnum(defs[nname], t)) {
             console.warn("  possibly overwriting definition for ".concat(nname), defs[nname], t);
         }
+        if (!t.title) {
+            var title = nname;
+            if (!title.endsWith('Enum')) {
+                title += 'Enum';
+            }
+            t.title = title;
+        }
         defs[nname] = t;
-        var ref = { "$ref": "#".concat(defsPath, "/").concat(nname) };
+        var myPath = "".concat(defsPath, "/").concat(nname);
+        var ref = { "$ref": "#".concat(myPath) };
         for (var i = 0, n = e.paths.length; i < n; ++i) {
             p = e.paths[i].add(e.props[i]);
-            p.setValue(result, ref);
+            if (p.asString() !== myPath) {
+                p.setValue(result, ref);
+            }
         }
     }
     return result;

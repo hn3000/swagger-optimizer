@@ -85,7 +85,7 @@ function help() {
     return __awaiter(this, void 0, void 0, function () {
         var helpText;
         return __generator(this, function (_a) {
-            helpText = "usage: {process.argv[1]}\noptions:\n  --help                  print this text\n  --deref=true            dereference all instances of $ref found in the file\n  --optimizeEnums=true    run the enum optimization\n  --rename={\"oldName\": \"newName\", ...}\n                          rename enums\n  --optimizeNumericEnums  also consider purely numeric enums for optimization\n  --removeAllOfs=true     replace allOf by copying all attributes\n  --step=x                additional steps to run:\n  --step=filter-tagged({\"in\":['some-tag']})\n  --step=filter-tagged({\"notin\":['other-tag']})\n                          filter operations by tag -- \"in\" requires tag\n  --step=remove-allofs    just like --removeAllOfs=true\n  --printOutput=true      print the optimized JSON on the console\n  --writeOutput=true      write the optimized JSON for $file.json to $file.opt.json\n  --debug=true            print some debug info\n";
+            helpText = "usage: ".concat(process.argv[1], " [options] <api-definition.json>\noptions:\n  --help                  print this text\n  --deref=true            dereference all instances of $ref found in the file\n  --optimizeEnums=true    run the enum optimization\n  --rename={\"oldName\": \"newName\", ...}\n                          rename enums\n  --optimizeNumericEnums  also consider purely numeric enums for optimization\n  --removeAllOfs=true     replace allOf by copying all attributes\n  --step=x                additional steps to run:\n  --step=filter-tagged({\"in\":['some-tag']})\n  --step=filter-tagged({\"notin\":['other-tag']})\n                          filter operations by tag -- \"in\" requires tag\n  --step=remove-allofs    just like --removeAllOfs=true\n  --printOutput=true      print the optimized JSON on the console\n  --writeOutput=true      write the optimized JSON for $file.json to $file.opt.json\n  --debug=true            print some debug info\n");
             console.log(helpText);
             return [2 /*return*/];
         });
@@ -152,13 +152,12 @@ function main(argv) {
 }
 function optimizeSchema(schema, fn, filterSteps) {
     return __awaiter(this, void 0, void 0, function () {
-        var version, enums, redundantEnums, allOfs, nameMap, otherNames, foundNames, unusedNames, _loop_1, _i, redundantEnums_1, e, optimized, i, n, step, options, optfn;
+        var version, enums, redundantEnums, allOfs, nameMap, otherNames, foundNames, unusedNames, _loop_1, _i, redundantEnums_1, e, optimized, i, n, step, options, writeOutput, isString, outputFilename;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     version = (0, openapi_version_1.findVersion)(schema);
                     consoleLog("optimizing ".concat(version.name, " ").concat(fn), Object.keys(schema));
-                    debugLog;
                     enums = (0, optimize_enums_1.findEnums)(schema, fn);
                     redundantEnums = (0, optimize_enums_1.filterEnums)(enums, argv);
                     allOfs = (0, remove_allofs_2.findAllOfs)(schema);
@@ -193,8 +192,9 @@ function optimizeSchema(schema, fn, filterSteps) {
                         }
                     }
                     if (argv["debug"] && useLogging) {
-                        consoleLog(fn, 'enums:', redundantEnums);
-                        consoleLog(fn, 'allOfs:', allOfs);
+                        //consoleLog(fn, 'enums:', JSON.stringify(redundantEnums, (x: any) => ((x instanceof jsonref.JsonReference) ? x.toString() : x), 4));
+                        debugLog(fn, 'enums:', redundantEnums, JSON.stringify(redundantEnums, null, 4));
+                        debugLog(fn, 'allOfs:', allOfs);
                     }
                     optimized = schema;
                     if (argv["optimizeEnums"]) {
@@ -221,10 +221,12 @@ function optimizeSchema(schema, fn, filterSteps) {
                     return [3 /*break*/, 1];
                 case 4:
                     if (null != optimized) {
-                        if (argv['writeOutput']) {
-                            optfn = fn.replace(/\.json/, '.opt.json');
-                            fs.writeFileSync(optfn, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
-                            consoleLog("wrote ".concat(optfn, "."));
+                        writeOutput = argv['writeOutput'];
+                        if (writeOutput) {
+                            isString = typeof writeOutput === 'string' && writeOutput !== 'true';
+                            outputFilename = (isString) ? writeOutput : fn.replace(/\.json/, '.opt.json');
+                            fs.writeFileSync(outputFilename, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
+                            consoleLog("wrote ".concat(outputFilename, "."));
                         }
                         if (argv['printOutput']) {
                             console.log(JSON.stringify(optimized, null, 2));
