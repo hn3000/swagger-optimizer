@@ -176,7 +176,7 @@ async function optimizeSchema(schema, fn, filterSteps: [ IFilterStep, any ][]) {
   if (null != optimized) {
     const writeOutput = argv['writeOutput'];
     if (writeOutput) {
-      const isString = typeof writeOutput === 'string';
+      const isString = typeof writeOutput === 'string' && writeOutput !== 'true';
       let outputFilename = (isString) ? writeOutput : fn.replace(/\.json/, '.opt.json');
       fs.writeFileSync(outputFilename, JSON.stringify(optimized, null, 2), { encoding: 'utf-8' });
       consoleLog(`wrote ${outputFilename}.`);
