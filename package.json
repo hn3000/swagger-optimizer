@@ -1,6 +1,6 @@
 {
   "name": "@hn3000/swagger-optimizer",
-  "version": "0.9.4",
+  "version": "1.0.3",
   "description": "Simple tool to transform swagger API specifications.",
   "repository": {
     "type": "git",
