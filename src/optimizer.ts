@@ -44,7 +44,7 @@ function debugLog(msg, ...args) {
 }
 
 async function help() {
-  const helpText = `usage: {process.argv[1]}
+  const helpText = `usage: ${process.argv[1]} [options] <api-definition.json>
 options:
   --help                  print this text
   --deref=true            dereference all instances of $ref found in the file
